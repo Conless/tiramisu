@@ -1,0 +1,8 @@
+riscv/testspace/*
+
+.vscode/
+
+*.o
+*.vcd
+
+!.keep
