@@ -1,8 +1,8 @@
-# <img src="../figure/cpu.png" width="40" align=center /> RISCV-CPU 2023
+# <img src="figure/cpu.png" width="40" align=center /> RISCV-CPU 2023
 
 ## 引言
 
-![wechat_screenshot](../figure/wechat_screenshot.jpg)
+![wechat_screenshot](figure/wechat_screenshot.jpg)
 
 
 ## 项目说明
@@ -97,7 +97,7 @@ Code Review 将会有两次，分别在期中和期末，分别占 5%、10%。�
 
 -  在本地 Simulation 时，部分样例运行时间可能会非常非常长，如 `heart.c` 与 `pi.c`。这些样例不会被算入 Simulation 的测试范围，但会在 FPGA 检查阶段纳入测试范围。
 - 为了让一些不用 `sleep` 函数的本地 simulation 跑得更快，本地测评版本中的 `riscv/sys/io.h` 并没有 `#define SIM`，导致一些需要 `sleep` 函数的测试点无法本地正确测试，比如 `qsort` 测试点会因为`sleep`没执行导致时钟始终为$0$而执行异常，如果需要本地测评这类测试点记得在 `riscv/sys/io.h` 中加上`#define SIM`。
-![时代眼泪——彩云的愤怒](../figure/Snipaste_2023-09-27_23-38-29.png)
+![时代眼泪——彩云的愤怒](figure/Snipaste_2023-09-27_23-38-29.png)
 
 ### Vivado配置和FPGA
 
@@ -110,7 +110,7 @@ Code Review 将会有两次，分别在期中和期末，分别占 5%、10%。�
 - **Serial Communication Library**
 
   - 程序与 FPGA 板通过 USB 通讯过程中使用该库
-  - 安装方式参见本仓库 `doc` 分支，2023-10-03 update：范老师关于WSL2上板指引 `RISC-V-CPU-2023/doc/RISCV-CPU-doc/doc/qweryy-Vivado-wsl2.md`
+  - 安装方式参见本仓库 `doc` 分支，2023-10-03 update：范老师关于WSL2 [上板指引](qweryy-Vivado-wsl2.md)
 
 - Vivado 不支持 MacOS 系统，故如果使用 Mac 则必须使用虚拟机，推荐 Ubuntu Desktop。此外对于使用 Windows 电脑的同学，RISC-V Toolchain 也推荐在 Linux 系统上安装。
 - FPGA 开发板比较脆弱，使用时请注意爱护，除垫脚外不要有磕碰或硬物接触；不要让导电物品（注意人体是导电的）接触到板上按钮除外的金属部分。
