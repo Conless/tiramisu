@@ -1,16 +1,22 @@
 // RISCV32I CPU top module
 // port modification allowed for debugging purposes
 
-module cpu(
-    input wire         clk_in,
-    input wire         rst_in,
-    input wire         rdy_in,
-    input wire [7:0]   mem_din,
-    output wire [7:0]  mem_dout,
-    output wire [31:0] mem_a,
-    output wire        mem_wr,
-    input wire         io_buffer_full,         // 1 if uart buffer is full
-    output wire [31:0] dbgreg_dout
+module CentralProcessingUnit #(
+    parameter ADDR_WIDTH = 17,
+    parameter INST_WIDTH = 32,
+    parameter RAM_WIDTH = 32 * 4
+  ) (
+    input wire         clk,
+    input wire         rst,
+    input wire         rdy,
+
+    input wire [RAM_WIDTH-1:0] dout_a,
+    output wire [ADDR_WIDTH-1:0] addr_a,
+
+    input wire [RAM_WIDTH-1:0] dout_b,
+    output wire [ADDR_WIDTH-1:0] addr_b,
+    output wire [RAM_WIDTH-1:0] din_b,
+    output wire we_b
   );
 
   // implementation goes here
@@ -25,11 +31,47 @@ module cpu(
   // - 0x30004 read: read clocks passed since cpu starts (in dword, 4 bytes)
   // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
-  always @(posedge clk_in) begin
-    if (rst_in) begin
+  // outports wire
+  wire [ADDR_WIDTH-1:0] 	inst_cache_read_addr;
+  wire                  	inst_decode_valid;
+  wire [INST_WIDTH-1:0] 	inst_decode_data;
+  
+  InstructionFetcher ifetch(
+    .clk                  	( clk                   ),
+    .rst                  	( rst                   ),
+    .rdy                  	( rdy                   ),
+    .cdb_valid            	(              ),
+    .cdb_data             	(               ),
+    .inst_cache_read_done 	( inst_cache_read_done  ),
+    .inst_cache_read_data 	( inst_cache_read_data  ),
+    .inst_cache_read_addr 	( inst_cache_read_addr  ),
+    .inst_decode_ready    	( inst_decode_ready     ),
+    .inst_decode_valid    	( inst_decode_valid     ),
+    .inst_decode_data     	( inst_decode_data      )
+  );
+
+  // outports wire
+  wire                  	inst_cache_read_done;
+  wire [INST_WIDTH-1:0] 	inst_cache_read_data;
+  
+  InstructionCache icache(
+    .clk                  	( clk                   ),
+    .rst                  	( rst                   ),
+    .rdy                  	(                    ),
+    .inst_cache_read_addr 	( inst_cache_read_addr  ),
+    .inst_cache_read_done 	( inst_cache_read_done  ),
+    .inst_cache_read_data 	( inst_cache_read_data  ),
+    .dout_a               	( dout_a                ),
+    .addr_a               	( addr_a                )
+  );
+  
+  
+
+  always @(posedge clk) begin
+    if (rst) begin
 
     end
-    else if (!rdy_in) begin
+    else if (!rdy) begin
 
     end
     else begin
