@@ -1,6 +1,6 @@
 module InstructionFetcher #(
     parameter INST_WIDTH  = 32,
-    parameter ADDR_WIDTH  = 32,
+    parameter ADDR_WIDTH  = 17,
     parameter CDB_WIDTH   = 32
   ) (
     // cpu status
@@ -15,12 +15,12 @@ module InstructionFetcher #(
     // to instrcution cache
     input wire inst_cache_read_done,
     input wire [INST_WIDTH-1:0] inst_cache_read_data,
-    output reg [ADDR_WIDTH-1:0] inst_cache_read_addr,
+    output wire [ADDR_WIDTH-1:0] inst_cache_read_addr,
 
     // to instruction decode
     input wire inst_decode_ready,
     output reg inst_decode_valid,
-    output reg [INST_WIDTH-1:0] inst_decode_data
+    output wire [INST_WIDTH-1:0] inst_decode_data
   );
 
   localparam IDLE = 2'b00;
@@ -31,35 +31,43 @@ module InstructionFetcher #(
   reg [1:0] status; // default value is 2'b00, i.e. idle
   reg [ADDR_WIDTH-1:0] program_counter; // default value is 0, i.e. program start from 0x0
 
+  assign inst_cache_read_addr = program_counter;
+  assign inst_decode_data = inst_cache_read_data;
+
   always @(posedge clk) begin
     if (rst) begin
       // TODO(Conless): reset signal
     end
     else begin
-      case (status)
-        IDLE: begin
+      if (inst_decode_ready) begin // It means instruction decoder will accept that instruction in current cycle, so we can set valid signal to 0
+        inst_decode_valid <= 0;
+      end
+
+      case (status) // Finite state machine
+        IDLE: begin // Ready to fetch next instruction
           status <= WAIT_MEM;
-          inst_cache_read_addr <= program_counter;
         end
         WAIT_MEM: begin
-          if (inst_cache_read_done) begin
-            status <= WAIT_DECODE;
+          if (inst_cache_read_done) begin // Instruction cache has read the instruction
+            if (inst_decode_ready) begin // Instruction decoder is ready to accept the instruction
+              status <= IDLE;
+            end else begin // Instruction decoder is not ready to accept the instruction
+              status <= WAIT_DECODE;
+            end
             inst_decode_valid <= 1;
-            inst_decode_data <= inst_cache_read_data;
           end
         end
         WAIT_DECODE: begin
-          if (inst_decode_ready) begin
-            inst_decode_valid <= 0;
-            if (false) begin
+          if (inst_decode_ready) begin // Instruction decoder is ready to accept the instruction
+            if (0) begin
               // TODO(Conless): branch instruction
             end else begin
               status <= IDLE;
-              program_counter <= program_counter + 4;
+              program_counter <= program_counter + 4; // Next instruction
             end
           end
         end
-        STALL: begin
+        STALL: begin // Wait for branch target
           if (cdb_valid) begin
             // TODO(Conless): monitor data on common data bus
             status <= IDLE;
