@@ -55,11 +55,19 @@ module InstructionCache #(
   assign inst_cache_read_done = hit;
   assign inst_cache_read_data = block_insts[block_offset];
 
+  integer j;
+
   always @(posedge clk) begin
     if (rst) begin
       status <= IDLE;
+      status <= 0;
+      for (j = 0; j < BLOCK_COUNT; j = j + 1) begin
+        cache_block_valid[j] <= 0;
+        cache_block_tag[j] <= 0;
+        cache_block_data[j] <= 0;
+      end
     end
-    else begin
+    else if (rdy) begin
       case (status)
         IDLE: begin
           if (!hit) begin

@@ -36,9 +36,10 @@ module InstructionFetcher #(
 
   always @(posedge clk) begin
     if (rst) begin
-      // TODO(Conless): reset signal
+      status <= 0;
+      program_counter <= 0;
     end
-    else begin
+    else if (rdy) begin
       if (inst_decode_ready) begin // It means instruction decoder will accept that instruction in current cycle, so we can set valid signal to 0
         inst_decode_valid <= 0;
       end
