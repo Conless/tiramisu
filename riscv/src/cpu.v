@@ -57,7 +57,7 @@ module CentralProcessingUnit #(
   InstructionCache icache(
     .clk                  	( clk                   ),
     .rst                  	( rst                   ),
-    .rdy                  	(                    ),
+    .rdy                  	( rdy                   ),
     .inst_cache_read_addr 	( inst_cache_read_addr  ),
     .inst_cache_read_done 	( inst_cache_read_done  ),
     .inst_cache_read_data 	( inst_cache_read_data  ),

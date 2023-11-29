@@ -33,6 +33,7 @@ module InstructionCache #(
   reg [TAG_WIDTH-1:0] cache_block_tag[BLOCK_COUNT-1:0];
   reg [BLOCK_SIZE-1:0] cache_block_data[BLOCK_COUNT-1:0];
 
+  wire [INDEX_WIDTH-1:0] block_num;
   wire [BLOCK_SIZE-1:0] block_selected;
   wire [BLOCK_WIDTH-1:0] block_offset;
   wire [INST_WIDTH-1:0] block_insts[BLOCK_COUNT-1:0];
@@ -43,7 +44,10 @@ module InstructionCache #(
   assign block_selected = cache_block_data[block_num];
   assign block_offset = inst_cache_read_addr[BLOCK_WIDTH-1:0];
   assign tag = inst_cache_read_addr[ADDR_WIDTH-1:ADDR_WIDTH-TAG_WIDTH];
-  assign hit = cache_block_valid[block_selected] && (cache_block_tag[block_selected] == tag);
+  assign hit = cache_block_valid[block_num] && (cache_block_tag[block_num] == tag);
+
+  // For debug use
+  assign valid = cache_block_valid[block_num];
 
   genvar i;
   generate
@@ -77,6 +81,7 @@ module InstructionCache #(
         end
         WAIT_MEM: begin
           cache_block_data[block_num] <= dout_a;
+          cache_block_valid[block_num] <= 1;
           status <= IDLE;
         end
       endcase
