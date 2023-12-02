@@ -10,7 +10,7 @@ module InstructionCache #(
     input wire rst,
     input wire rdy,
 
-    // to instruction fetcher
+    // to instruction unit
     input wire [ADDR_WIDTH-1:0] inst_cache_read_addr,
     output wire inst_cache_read_done,
     output wire [INST_WIDTH-1:0] inst_cache_read_data,

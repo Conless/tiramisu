@@ -1,4 +1,4 @@
-module InstructionFetcher #(
+module InstructionUnit #(
     parameter INST_WIDTH  = 32,
     parameter ADDR_WIDTH  = 17,
     parameter CDB_WIDTH   = 32
@@ -17,22 +17,22 @@ module InstructionFetcher #(
     input wire [INST_WIDTH-1:0] inst_cache_read_data,
     output wire [ADDR_WIDTH-1:0] inst_cache_read_addr,
 
-    // to instruction decode
-    input wire inst_decode_ready,
-    output reg inst_decode_valid,
-    output wire [INST_WIDTH-1:0] inst_decode_data
+    // to instruction queue
+    input wire inst_queue_ready,
+    output reg inst_queue_entry_valid,
+    output wire [ADDR_WIDTH+INST_WIDTH-1:0] inst_queue_entry // low bits store instruction, high bits store program counter
   );
 
   localparam IDLE = 2'b00;
   localparam WAIT_MEM = 2'b01;
-  localparam WAIT_DECODE = 2'b10;
+  localparam WAIT_QUEUE = 2'b10;
   localparam STALL = 2'b11;
 
   reg [1:0] status; // default value is 2'b00, i.e. idle
   reg [ADDR_WIDTH-1:0] program_counter; // default value is 0, i.e. program start from 0x0
 
   assign inst_cache_read_addr = program_counter;
-  assign inst_decode_data = inst_cache_read_data;
+  assign inst_queue_entry = {program_counter, inst_cache_read_data};
 
   always @(posedge clk) begin
     if (rst) begin
@@ -40,8 +40,8 @@ module InstructionFetcher #(
       program_counter <= 0;
     end
     else if (rdy) begin
-      if (inst_decode_ready) begin // It means instruction decoder will accept that instruction in current cycle, so we can set valid signal to 0
-        inst_decode_valid <= 0;
+      if (inst_queue_ready && inst_queue_entry_valid) begin // It means instruction queue will accept that instruction in current cycle, so we can set valid signal to 0
+        inst_queue_entry_valid <= 0;
       end
 
       case (status) // Finite state machine
@@ -50,16 +50,16 @@ module InstructionFetcher #(
         end
         WAIT_MEM: begin
           if (inst_cache_read_done) begin // Instruction cache has read the instruction
-            if (inst_decode_ready) begin // Instruction decoder is ready to accept the instruction
+            if (inst_queue_ready) begin // Instruction queue is ready to accept the instruction
               status <= IDLE;
-            end else begin // Instruction decoder is not ready to accept the instruction
-              status <= WAIT_DECODE;
+            end else begin // Instruction queue is not ready to accept the instruction
+              status <= WAIT_QUEUE;
             end
-            inst_decode_valid <= 1;
+            inst_queue_entry_valid <= 1;
           end
         end
-        WAIT_DECODE: begin
-          if (inst_decode_ready) begin // Instruction decoder is ready to accept the instruction
+        WAIT_QUEUE: begin
+          if (inst_queue_ready) begin // Instruction queue is ready to accept the instruction
             if (0) begin
               // TODO(Conless): branch instruction
             end else begin
