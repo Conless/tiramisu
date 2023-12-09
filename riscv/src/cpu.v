@@ -31,30 +31,32 @@ module CentralProcessingUnit #(
   // - 0x30004 read: read clocks passed since cpu starts (in dword, 4 bytes)
   // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
-  // outports wire
+  // Instruction Unit <--> Instruction Cache
   wire [ADDR_WIDTH-1:0] 	inst_cache_read_addr;
-  wire                  	inst_decode_valid;
-  wire [INST_WIDTH-1:0] 	inst_decode_data;
-  
-  InstructionFetcher ifetch(
-    .clk                  	( clk                   ),
-    .rst                  	( rst                   ),
-    .rdy                  	( rdy                   ),
-    .cdb_valid            	(              ),
-    .cdb_data             	(               ),
-    .inst_cache_read_done 	( inst_cache_read_done  ),
-    .inst_cache_read_data 	( inst_cache_read_data  ),
-    .inst_cache_read_addr 	( inst_cache_read_addr  ),
-    .inst_decode_ready    	( inst_decode_ready     ),
-    .inst_decode_valid    	( inst_decode_valid     ),
-    .inst_decode_data     	( inst_decode_data      )
-  );
-
-  // outports wire
   wire                  	inst_cache_read_done;
   wire [INST_WIDTH-1:0] 	inst_cache_read_data;
+
+  // Instruction Unit <--> Instruction Queue
+  wire                  	          inst_queue_entry_valid;
+  wire [ADDR_WIDTH+INST_WIDTH-1:0] 	inst_queue_entry;
+  wire                 	            inst_queue_ready;
   
-  InstructionCache icache(
+  InstructionUnit ins_unit(
+    .clk                  	( clk                    ),
+    .rst                  	( rst                    ),
+    .rdy                  	( rdy                    ),
+    .cdb_valid            	(                        ),
+    .cdb_data             	(                        ),
+    .inst_cache_read_done 	( inst_cache_read_done   ),
+    .inst_cache_read_data 	( inst_cache_read_data   ),
+    .inst_cache_read_addr 	( inst_cache_read_addr   ),
+    .inst_queue_ready    	  ( inst_queue_ready       ),
+    .inst_queue_entry_valid ( inst_queue_entry_valid ),
+    .inst_queue_entry     	( inst_queue_entry       )
+  );
+
+  
+  InstructionCache ins_cache(
     .clk                  	( clk                   ),
     .rst                  	( rst                   ),
     .rdy                  	( rdy                   ),
@@ -63,6 +65,15 @@ module CentralProcessingUnit #(
     .inst_cache_read_data 	( inst_cache_read_data  ),
     .dout_a               	( dout_a                ),
     .addr_a               	( addr_a                )
+  );
+
+  InstructionQueue ins_queue(
+    .clk                  	( clk                    ),
+    .rst                  	( rst                    ),
+    .rdy                  	( rdy                    ),
+    .inst_queue_entry_valid ( inst_queue_entry_valid ),
+    .inst_queue_entry     	( inst_queue_entry       ),
+    .inst_queue_ready     	( inst_queue_ready       )
   );
   
   

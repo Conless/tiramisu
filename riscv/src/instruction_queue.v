@@ -54,7 +54,7 @@ module InstructionQueue #(
   assign inst_queue_entry_rs2 = inst_queue_entry[24:20];
   assign inst_queue_entry_rd = inst_queue_entry[11:7];
   assign inst_queue_entry_tag = inst_queue_entry[OPCODE_WIDTH+REG_NUM_WIDTH+2:OPCODE_WIDTH+REG_NUM_WIDTH];
-  assign inst_queue_entry_imm_high = inst_queue_entry[OPCODE_WIDT-1];
+  assign inst_queue_entry_imm_high = inst_queue_entry[OPCODE_WIDTH-1];
 
   always @(posedge clk) begin
     if (rst) begin
