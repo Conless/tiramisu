@@ -52,6 +52,7 @@ module InstructionUnit #(
           if (inst_cache_read_done) begin // Instruction cache has read the instruction
             if (inst_queue_ready) begin // Instruction queue is ready to accept the instruction
               status <= IDLE;
+              program_counter <= program_counter + 4; // Next instruction
             end else begin // Instruction queue is not ready to accept the instruction
               status <= WAIT_QUEUE;
             end

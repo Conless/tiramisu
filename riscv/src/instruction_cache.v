@@ -2,7 +2,7 @@ module InstructionCache #(
     parameter INST_WIDTH = 32,
     parameter ADDR_WIDTH = 17,
     parameter RAM_WIDTH = 32*4,
-    parameter BLOCK_WIDTH = 2,
+    parameter BLOCK_WIDTH = 4,
     parameter INDEX_WIDTH = 6,
     parameter TAG_WIDTH = ADDR_WIDTH - INDEX_WIDTH - BLOCK_WIDTH
   ) (
@@ -24,7 +24,8 @@ module InstructionCache #(
   localparam WAIT_MEM = 1;
 
   localparam BLOCK_COUNT = 2 ** INDEX_WIDTH;
-  localparam BLOCK_INST_COUNT = 2 ** BLOCK_WIDTH;
+  localparam BLOCK_INST_COUNT = 2 ** (BLOCK_WIDTH - 2);
+  localparam BLOCK_ADDR_COUNT = 2 ** BLOCK_WIDTH;
   localparam BLOCK_SIZE = BLOCK_INST_COUNT * INST_WIDTH;
 
   reg status;
@@ -42,7 +43,7 @@ module InstructionCache #(
 
   assign block_num = inst_cache_read_addr[BLOCK_WIDTH+INDEX_WIDTH-1:BLOCK_WIDTH];
   assign block_selected = cache_block_data[block_num];
-  assign block_offset = inst_cache_read_addr[BLOCK_WIDTH-1:0];
+  assign block_offset = inst_cache_read_addr[BLOCK_WIDTH-1:2];
   assign tag = inst_cache_read_addr[ADDR_WIDTH-1:ADDR_WIDTH-TAG_WIDTH];
   assign hit = cache_block_valid[block_num] && (cache_block_tag[block_num] == tag);
 
@@ -51,7 +52,7 @@ module InstructionCache #(
 
   genvar i;
   generate
-    for (i = 0; i < BLOCK_COUNT; i = i + 1) begin
+    for (i = 0; i < BLOCK_INST_COUNT; i = i + 1) begin
       assign block_insts[i] = block_selected[(i+1)*INST_WIDTH-1:i*INST_WIDTH];
     end
   endgenerate
